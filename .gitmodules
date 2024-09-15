@@ -1,0 +1,3 @@
+[submodule "frontend/nextjs-blog-frontend"]
+	path = frontend/nextjs-blog-frontend
+	url = https://github.com/Nihad18/nextjs-blog-frontend

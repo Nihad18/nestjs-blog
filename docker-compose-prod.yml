@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend 
+      dockerfile: ./Dockerfile 
+    container_name: my_api_app
+    ports:
+      - "8000:8000" 
+    volumes:
+      - ./backend/src:/backend/src 
+      - ./backend/uploads:/backend/uploads
+    environment:
+      - POSTGRES_HOST=db
+      - NODE_ENV=development
+    depends_on:
+      - db
+    command: npm run start:prod
+
+  nginx:
+    image: nginx:alpine
+    container_name: my_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx/certs/cert.pem:/etc/ssl/cert.pem
+      - ./config/nginx/certs/key.pem:/etc/ssl/key.pem
+      - ./backend/uploads:/backend/uploads
+      - ./config/nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend
+  
+  frontend:
+    container_name: next-app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./frontend/nextjs-blog-frontend/src:/frontend/src
+      - ./frontend/nextjs-blog-frontend:/frontend/public
+    restart: always
+    ports:
+      - 3000:3000
+
+  db:
+    image: postgres:16.1-alpine
+    container_name: mypostgresdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - ./config/postgresql/.env
+    init: true
+
+volumes:
+  pgdata: 
